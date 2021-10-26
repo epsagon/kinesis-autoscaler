@@ -1,0 +1,10 @@
+{
+  "name": "kinesis-autoscaler",
+  "version": "0.1.0",
+  "author": "Epsagon <dev@epsagon.com>",
+  "dependencies": {},
+  "devDependencies": {
+    "serverless": "^2.64.1",
+    "serverless-python-requirements": "^5.1.1"
+  }
+}

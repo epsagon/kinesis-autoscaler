@@ -1,0 +1,124 @@
+service: stream-subscription-example
+
+custom:
+  shardCount: 1
+  streamName: subscription-example-${self:provider.stage}
+  scaleUpAlarmName: subscription-example-scale-up-${self:provider.stage}
+  scaleDownAlarmName: subscription-example-scale-down-${self:provider.stage}
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+
+resources:
+  Resources:
+    AutoscalerExampleStream:
+      Type: AWS::Kinesis::Stream
+      Properties:
+        Name: ${self:custom.streamName}
+        ShardCount: ${self:custom.shardCount, '1'}
+
+    ScaleUpAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmName: ${self:custom.scaleUpAlarmName}
+        AlarmActions:
+          - ${cf:kinesis-autoscaler-${self:provider.stage}.ScaleUpTopicArn}
+        Threshold: 0.75
+        ComparisonOperator: GreaterThanOrEqualToThreshold
+        TreatMissingData: ignore
+        EvaluationPeriods: 1
+        Metrics:
+          - Id: shardCount
+            Expression: ${self:custom.shardCount, '1'}
+            ReturnData: false
+          - Id: incomingBytes
+            MetricStat:
+              Metric:
+                Namespace: AWS/Kinesis
+                MetricName: IncomingBytes
+                Dimensions:
+                  - Name: StreamName
+                    Value: ${self:custom.streamName}
+              Period: 300
+              Stat: Sum
+            ReturnData: false
+          - Id: incomingRecords
+            MetricStat:
+              Metric:
+                Namespace: AWS/Kinesis
+                MetricName: IncomingRecords
+                Dimensions:
+                  - Name: StreamName
+                    Value: ${self:custom.streamName}
+              Period: 300
+              Stat: Sum
+            ReturnData: false
+          - Id: incomingBytesFilledWithZeroForMissingDataPoints
+            Expression: FILL(incomingBytes,0)
+            ReturnData: false
+          - Id: incomingRecordsFilledWithZeroForMissingDataPoints
+            Expression: FILL(incomingRecords,0)
+            ReturnData: false
+          - Id: incomingBytesUsageFactor
+            Expression: incomingBytesFilledWithZeroForMissingDataPoints/(1024*1024*60*5*shardCount)
+            ReturnData: false
+          - Id: incomingRecordsUsageFactor
+            Expression: incomingRecordsFilledWithZeroForMissingDataPoints/(1000*60*5*shardCount)
+            ReturnData: false
+          - Id: maxIncomingUsageFactor
+            Expression: MAX([incomingBytesUsageFactor,incomingRecordsUsageFactor])
+            ReturnData: true
+
+    ScaleDownAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmName: ${self:custom.scaleDownAlarmName}
+        AlarmActions:
+          - ${cf:kinesis-autoscaler-${self:provider.stage}.ScaleDownTopicArn}
+        Threshold: 0.25
+        ComparisonOperator: LessThanOrEqualToThreshold
+        TreatMissingData: ignore
+        EvaluationPeriods: 288 # 86400 (day in seconds) / 300 (metric period in seconds)
+        Metrics:
+          - Id: shardCount
+            Expression: ${self:custom.shardCount, '1'}
+            ReturnData: false
+          - Id: incomingBytes
+            MetricStat:
+              Metric:
+                Namespace: AWS/Kinesis
+                MetricName: IncomingBytes
+                Dimensions:
+                  - Name: StreamName
+                    Value: ${self:custom.streamName}
+              Period: 300
+              Stat: Sum
+            ReturnData: false
+          - Id: incomingRecords
+            MetricStat:
+              Metric:
+                Namespace: AWS/Kinesis
+                MetricName: IncomingRecords
+                Dimensions:
+                  - Name: StreamName
+                    Value: ${self:custom.streamName}
+              Period: 300
+              Stat: Sum
+            ReturnData: false
+          - Id: incomingBytesFilledWithZeroForMissingDataPoints
+            Expression: FILL(incomingBytes,0)
+            ReturnData: false
+          - Id: incomingRecordsFilledWithZeroForMissingDataPoints
+            Expression: FILL(incomingRecords,0)
+            ReturnData: false
+          - Id: incomingBytesUsageFactor
+            Expression: incomingBytesFilledWithZeroForMissingDataPoints/(1024*1024*60*5*shardCount)
+            ReturnData: false
+          - Id: incomingRecordsUsageFactor
+            Expression: incomingRecordsFilledWithZeroForMissingDataPoints/(1000*60*5*shardCount)
+            ReturnData: false
+          - Id: maxIncomingUsageFactor
+            Expression: MAX([incomingBytesUsageFactor,incomingRecordsUsageFactor])
+            ReturnData: true

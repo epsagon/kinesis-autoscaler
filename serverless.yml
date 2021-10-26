@@ -1,0 +1,106 @@
+service: kinesis-autoscaler
+
+custom:
+  scaleUpTopicName: ${self:service}-scale-up-${self:provider.stage}
+  scaleDownTopicName: ${self:service}-scale-down-${self:provider.stage}
+  autoscalerLogsTableName: ${self:service}-logs-${self:provider.stage}
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  memorySize: 1024
+  timeout: 30
+  environment:
+    STAGE: ${self:provider.stage}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - kinesis:UpdateShardCount
+        - kinesis:DescribeStreamSummary
+      Resource: '*'
+    - Effect: Allow
+      Action:
+        - cloudwatch:DescribeAlarms
+        - cloudwatch:PutMetricAlarm
+        - cloudwatch:SetAlarmState
+        - cloudwatch:GetMetricData
+      Resource: '*'
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:DescribeTable
+      Resource:
+        - Fn::GetAtt:
+            - AutoscalerLogsTable
+            - Arn
+
+functions:
+  scale-up:
+    description: 'Scales up Kinesis data stream'
+    handler: handler.scale_up
+    events:
+      - sns:
+          arn:
+            Ref: ScaleUpTopic
+          topicName: ${self:custom.scaleUpTopicName}
+
+  scale-down:
+    description: 'Scales down Kinesis data stream'
+    handler: handler.scale_down
+    events:
+      - sns:
+          arn:
+            Ref: ScaleDownTopic
+          topicName: ${self:custom.scaleDownTopicName}
+
+resources:
+  Resources:
+    ScaleUpTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: ${self:custom.scaleUpTopicName}
+        TopicName: ${self:custom.scaleUpTopicName}
+
+    ScaleDownTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: ${self:custom.scaleDownTopicName}
+        TopicName: ${self:custom.scaleDownTopicName}
+
+    AutoscalerLogsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.autoscalerLogsTableName}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: stream_name
+            AttributeType: S
+          - AttributeName: scaling_datetime
+            AttributeType: S
+        KeySchema:
+          - AttributeName: stream_name
+            KeyType: HASH
+          - AttributeName: scaling_datetime
+            KeyType: RANGE
+        TimeToLiveSpecification:
+          AttributeName: expiration_datetime
+          Enabled: true
+
+  Outputs:
+    ScaleUpTopicArn:
+      Value:
+        Ref: ScaleUpTopic
+      Export:
+        Name: ScaleUpTopicArn-${self:provider.stage}
+
+    ScaleDownTopicArn:
+      Value:
+        Ref: ScaleDownTopic
+      Export:
+        Name: ScaleDownTopicArn-${self:provider.stage}
+
+plugins:
+  - serverless-python-requirements

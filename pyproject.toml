@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "kinesis-autoscaler"
+version = "0.1.0"
+description = "Kinesis data stream autoscaler"
+authors = ["Epsagon <dev@epsagon.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+boto3 = "^1.19.3"
+pynamodb = "^5.1.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
