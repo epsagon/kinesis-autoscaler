@@ -2,8 +2,20 @@
   "name": "kinesis-autoscaler",
   "version": "0.1.0",
   "author": "Epsagon <dev@epsagon.com>",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.py": [
+      "black"
+    ]
+  },
   "dependencies": {},
   "devDependencies": {
+    "husky": "^4.3.8",
+    "lint-staged": "^11.2.5",
     "serverless": "^2.64.1",
     "serverless-python-requirements": "^5.1.1"
   }
