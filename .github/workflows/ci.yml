@@ -15,4 +15,4 @@ jobs:
       - name: Install dependencies
         run: poetry install
       - name: Check formatting
-        run: black --check .
+        run: poetry run black --check .
