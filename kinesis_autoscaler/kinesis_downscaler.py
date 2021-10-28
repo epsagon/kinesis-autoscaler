@@ -88,17 +88,17 @@ class KinesisDownscaler(KinesisAutoscaler):
                 },
                 {
                     "Id": "incomingBytesUsageFactor",
-                    "Expression": "incomingBytesFilledWithZeroForMissingDataPoints/(1024*1024*60*5*shardCount)",
+                    "Expression": "incomingBytesFilledWithZeroForMissingDataPoints/(1024*1024*60*5*shardCount)",  # noqa: E501
                     "ReturnData": False,
                 },
                 {
                     "Id": "incomingRecordsUsageFactor",
-                    "Expression": "incomingRecordsFilledWithZeroForMissingDataPoints/(1000*60*5*shardCount)",
+                    "Expression": "incomingRecordsFilledWithZeroForMissingDataPoints/(1000*60*5*shardCount)",  # noqa: E501
                     "ReturnData": False,
                 },
                 {
                     "Id": "maxIncomingUsageFactor",
-                    "Expression": "MAX([incomingBytesUsageFactor,incomingRecordsUsageFactor])",
+                    "Expression": "MAX([incomingBytesUsageFactor,incomingRecordsUsageFactor])",  # noqa: E501
                     "ReturnData": True,
                 },
             ],

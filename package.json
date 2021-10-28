@@ -9,6 +9,7 @@
   },
   "lint-staged": {
     "*.py": [
+      "flake8",
       "black"
     ]
   },
