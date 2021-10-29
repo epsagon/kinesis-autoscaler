@@ -35,7 +35,6 @@ class KinesisAutoscaler(ABC):
 
         alarm_shard_count = self.parse_alarm_shard_count()
         current_shard_count = self.get_current_shard_count()
-
         if alarm_shard_count != current_shard_count:
             logging.info("Alarm shard count out of sync. Syncing alarms")
             self.update_stream_alarms(current_shard_count)
@@ -44,13 +43,17 @@ class KinesisAutoscaler(ABC):
         target_shard_count = self.get_target_shard_count(current_shard_count)
         if current_shard_count == target_shard_count:
             logging.info(
-                "Current and target shard counts are equal. Autoscaling canceled"
+                "Current and target shard counts are equal. Autoscaling canceled. "
+                f"shard_count={current_shard_count}"
             )
             return
 
         self.update_shard_count(target_shard_count)
         self.update_stream_alarms(target_shard_count)
         self.write_scaling_log_to_db(current_shard_count, target_shard_count)
+        logging.info(
+            f"Scaling process finished successfully. stream={self.stream_name}"
+        )
 
     def parse_stream_name(self) -> str:
         """
