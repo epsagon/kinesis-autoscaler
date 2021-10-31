@@ -27,8 +27,9 @@ def scale_up(event: dict, _context) -> None:
     try:
         event_message = parse_sns_message(event)
         KinesisUpscaler(event_message).scale()
-    except Exception as error:
-        logging.exception(error)
+    except Exception:
+        logging.exception("stream scale-up process failed")
+        raise
 
 
 def scale_down(event: dict, _context) -> None:
@@ -39,5 +40,6 @@ def scale_down(event: dict, _context) -> None:
     try:
         event_message = parse_sns_message(event)
         KinesisDownscaler(event_message).scale()
-    except Exception as error:
-        logging.exception(error)
+    except Exception:
+        logging.exception("stream scale-down process failed")
+        raise
