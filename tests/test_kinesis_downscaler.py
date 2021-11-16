@@ -1,10 +1,9 @@
 """
 Kinesis downscaler tests
 """
-from datetime import timedelta
 from unittest.mock import call
+from datetime import datetime, timedelta, timezone
 from freezegun import freeze_time
-from tests.utils import parse_frozen_date
 from kinesis_autoscaler.kinesis_downscaler import KinesisDownscaler
 from kinesis_autoscaler.models.autoscaler_log import KinesisAutoscalerLog
 from kinesis_autoscaler.kinesis_autoscaler import (
@@ -13,10 +12,8 @@ from kinesis_autoscaler.kinesis_autoscaler import (
     LOGS_RETENTION_DAYS,
 )
 
-FROZEN_DATE = "2021-11-16"
 
-
-@freeze_time(FROZEN_DATE)
+@freeze_time("2021-11-16")
 def test_downscale_operation(mocker):
     """
     Basic sanity test to ensure the scale-down calculation is correct
@@ -137,7 +134,7 @@ def test_downscale_operation(mocker):
     assert log.target_shard_count == expected_target_shard_count
     assert log.scaling_type == "SCALE_DOWN"
 
-    frozen_datetime = parse_frozen_date(FROZEN_DATE)
+    frozen_datetime = datetime.utcnow().replace(tzinfo=timezone.utc)
     assert log.scaling_datetime == frozen_datetime
     assert log.expiration_datetime == frozen_datetime + timedelta(
         days=LOGS_RETENTION_DAYS
