@@ -99,7 +99,7 @@ class KinesisAutoscaler(ABC):
         if len(response["MetricAlarms"]) != 2:
             logging.warning(
                 "Expected to update 2 scaling alarms. "
-                f"Found {len(response['MetricAlarms'])} alarms"
+                f"Found {len(response['MetricAlarms'])} alarms."
             )
         for alarm in response["MetricAlarms"]:
             self.update_existing_alarm(alarm, target_shard_count)
