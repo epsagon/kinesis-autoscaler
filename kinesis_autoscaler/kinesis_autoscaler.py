@@ -6,11 +6,10 @@ from datetime import datetime, timezone, timedelta
 from abc import ABC, abstractmethod
 import boto3
 from kinesis_autoscaler.models.autoscaler_log import KinesisAutoscalerLog
+from kinesis_autoscaler.constants import REGION, LOGS_RETENTION_DAYS
 
-LOGS_RETENTION_DAYS = 14
-
-CW_CLIENT = boto3.client("cloudwatch")
-KINESIS_CLIENT = boto3.client("kinesis")
+CW_CLIENT = boto3.client("cloudwatch", region_name=REGION)
+KINESIS_CLIENT = boto3.client("kinesis", region_name=REGION)
 
 
 class KinesisAutoscaler(ABC):
