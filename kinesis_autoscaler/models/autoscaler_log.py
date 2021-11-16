@@ -10,6 +10,9 @@ from pynamodb.attributes import (
     UTCDateTimeAttribute,
 )
 
+DEFAULT_STAGE = "dev"
+DEFAULT_REGION = "us-east-1"
+
 
 class KinesisAutoscalerLog(Model):
     """
@@ -21,8 +24,8 @@ class KinesisAutoscalerLog(Model):
         Table details
         """
 
-        table_name = f"kinesis-autoscaler-logs-{os.environ['STAGE']}"
-        region = os.environ["AWS_REGION"]
+        table_name = f"kinesis-autoscaler-logs-{os.getenv('STAGE', DEFAULT_STAGE)}"
+        region = os.getenv("AWS_REGION", DEFAULT_REGION)
 
     stream_name = UnicodeAttribute(hash_key=True)
     scaling_datetime = UTCDateTimeAttribute(range_key=True)
