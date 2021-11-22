@@ -4,7 +4,7 @@ An easy to deploy autoscaling solution for Kinesis data streams.
 
 ## Introduction
 
-AWS Kinesis data streams doesn't have native autoscaling support.  
+AWS Kinesis data streams service doesn't have native autoscaling support.  
 This solution purpose is to fill that need by automatically handling the scaling of Kinesis data streams in order to prevent data loss, avoid manual developer intervention and save cost.
 
 ## Solution Architecture
@@ -19,11 +19,11 @@ The suggested solution consists of 3 stages: triggers, delivery and execution.
 
 ## Usage
 
-- Deploy the autoscaling service CloudFormation stack.
+- [Deploy](#deployment) the autoscaling service CloudFormation stack.
 - Create 2 alarms (scale-up/scale-down) for each subscribed stream.
 - Wire the alarms to the relevant exported SNS topics of the autoscaling service.
 
-Example of how to subscribe a stream to the autoscaler service can be found in the `/examples` folder.
+Example of how to create alarms and subscribe a stream to the autoscaler service can be found [here](https://github.com/epsagon/kinesis-autoscaler/blob/main/examples/stream_subscription.yml).
 
 ## Deployment
 
