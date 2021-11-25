@@ -4,6 +4,7 @@ Kinesis upscaler tests
 from unittest.mock import call
 from datetime import datetime, timedelta, timezone
 from freezegun import freeze_time
+from pytest_mock import MockerFixture
 from kinesis_autoscaler.kinesis_upscaler import KinesisUpscaler
 from kinesis_autoscaler.models.autoscaler_log import KinesisAutoscalerLog
 from kinesis_autoscaler.kinesis_autoscaler import (
@@ -11,10 +12,12 @@ from kinesis_autoscaler.kinesis_autoscaler import (
     KINESIS_CLIENT,
     LOGS_RETENTION_DAYS,
 )
+from tests.aws_client_mockers.cw_client_mocker import CloudWatchClientMocker
+from tests.aws_client_mockers.kinesis_client_mocker import KinesisClientMocker
 
 
 @freeze_time("2021-11-16")
-def test_upscale_operation(mocker):
+def test_upscale_operation(mocker: MockerFixture) -> None:
     """
     Basic sanity test to ensure the scale-up calculation is correct
     and that the required aws requests are sent as expected.
@@ -25,40 +28,18 @@ def test_upscale_operation(mocker):
     current_shard_count = 2
     expected_target_shard_count = 4
 
-    mocker.patch.object(
-        KINESIS_CLIENT,
-        "describe_stream_summary",
-        return_value={
-            "StreamDescriptionSummary": {"OpenShardCount": current_shard_count}
-        },
+    cw_client_mock = CloudWatchClientMocker(CW_CLIENT, mocker)
+    kinesis_client_mock = KinesisClientMocker(KINESIS_CLIENT, mocker)
+
+    kinesis_client_mock.describe_stream_summary(current_shard_count)
+    update_shard_count_mock = kinesis_client_mock.update_shard_count(
+        stream_name, current_shard_count, expected_target_shard_count
     )
-    update_shard_count_mock = mocker.patch.object(
-        KINESIS_CLIENT,
-        "update_shard_count",
-        return_value={
-            "StreamName": stream_name,
-            "CurrentShardCount": current_shard_count,
-            "TargetShardCount": expected_target_shard_count,
-        },
+    cw_client_mock.describe_alarms(
+        alarm_names=(scale_up_alarm_name, scale_down_alarm_name)
     )
-    mocker.patch.object(
-        CW_CLIENT,
-        "describe_alarms",
-        return_value={
-            "MetricAlarms": [
-                {
-                    "AlarmName": scale_up_alarm_name,
-                    "Metrics": [{"Id": "shardCount"}],
-                },
-                {
-                    "AlarmName": scale_down_alarm_name,
-                    "Metrics": [{"Id": "shardCount"}],
-                },
-            ]
-        },
-    )
-    put_metric_alarm_mock = mocker.patch.object(CW_CLIENT, "put_metric_alarm")
-    set_alarm_state_mock = mocker.patch.object(CW_CLIENT, "set_alarm_state")
+    put_metric_alarm_mock = cw_client_mock.put_metric_alarm()
+    set_alarm_state_mock = cw_client_mock.set_alarm_state()
 
     event_message = {
         "AlarmName": scale_up_alarm_name,
