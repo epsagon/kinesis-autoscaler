@@ -95,11 +95,14 @@ class KinesisAutoscaler(ABC):
         """
         alarm_names = self.get_alarm_names()
         response = CW_CLIENT.describe_alarms(AlarmNames=list(alarm_names.values()))
+
         if len(response["MetricAlarms"]) != 2:
-            logging.warning(
+            alarm_names = [alarm["AlarmName"] for alarm in response["MetricAlarms"]]
+            raise ValueError(
                 "Expected to update 2 scaling alarms. "
-                f"Found {len(response['MetricAlarms'])} alarms."
+                f"Found {len(alarm_names)} alarms. alarm_names={alarm_names}"
             )
+
         for alarm in response["MetricAlarms"]:
             self.update_existing_alarm(alarm, target_shard_count)
             self.reset_alarm_state(alarm["AlarmName"])
