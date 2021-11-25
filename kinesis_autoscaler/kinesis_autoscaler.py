@@ -205,6 +205,10 @@ class KinesisAutoscaler(ABC):
         pass
 
     def update_shard_count(self, target_shard_count: int) -> None:
+        """
+        Updates the stream shard count using the UpdateShardCount API.
+        :param target_shard_count: the shard count the stream should scale to
+        """
         response = KINESIS_CLIENT.update_shard_count(
             StreamName=self.stream_name,
             TargetShardCount=target_shard_count,

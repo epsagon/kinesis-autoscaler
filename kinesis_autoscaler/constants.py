@@ -1,3 +1,6 @@
+"""
+Service constants
+"""
 import os
 
 DEFAULT_REGION = "us-east-1"
