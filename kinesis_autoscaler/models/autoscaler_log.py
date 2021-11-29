@@ -1,7 +1,6 @@
 """
 Autoscaling event log DynamoDB model
 """
-import os
 from pynamodb.models import Model
 from pynamodb.attributes import (
     TTLAttribute,
@@ -9,6 +8,7 @@ from pynamodb.attributes import (
     UnicodeAttribute,
     UTCDateTimeAttribute,
 )
+from kinesis_autoscaler.constants import REGION, STAGE
 
 
 class KinesisAutoscalerLog(Model):
@@ -21,8 +21,8 @@ class KinesisAutoscalerLog(Model):
         Table details
         """
 
-        table_name = f"kinesis-autoscaler-logs-{os.environ['STAGE']}"
-        region = os.environ["AWS_REGION"]
+        table_name = f"kinesis-autoscaler-logs-{STAGE}"
+        region = REGION
 
     stream_name = UnicodeAttribute(hash_key=True)
     scaling_datetime = UTCDateTimeAttribute(range_key=True)

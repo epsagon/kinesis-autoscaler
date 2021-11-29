@@ -6,11 +6,10 @@ from datetime import datetime, timezone, timedelta
 from abc import ABC, abstractmethod
 import boto3
 from kinesis_autoscaler.models.autoscaler_log import KinesisAutoscalerLog
+from kinesis_autoscaler.constants import REGION, LOGS_RETENTION_DAYS
 
-LOGS_RETENTION_DAYS = 14
-
-CW_CLIENT = boto3.client("cloudwatch")
-KINESIS_CLIENT = boto3.client("kinesis")
+CW_CLIENT = boto3.client("cloudwatch", region_name=REGION)
+KINESIS_CLIENT = boto3.client("kinesis", region_name=REGION)
 
 
 class KinesisAutoscaler(ABC):
@@ -96,6 +95,14 @@ class KinesisAutoscaler(ABC):
         """
         alarm_names = self.get_alarm_names()
         response = CW_CLIENT.describe_alarms(AlarmNames=list(alarm_names.values()))
+
+        if len(response["MetricAlarms"]) != 2:
+            alarm_names = [alarm["AlarmName"] for alarm in response["MetricAlarms"]]
+            raise ValueError(
+                "Expected to update 2 scaling alarms. "
+                f"Found {len(alarm_names)} alarms. alarm_names={alarm_names}"
+            )
+
         for alarm in response["MetricAlarms"]:
             self.update_existing_alarm(alarm, target_shard_count)
             self.reset_alarm_state(alarm["AlarmName"])
@@ -201,6 +208,10 @@ class KinesisAutoscaler(ABC):
         pass
 
     def update_shard_count(self, target_shard_count: int) -> None:
+        """
+        Updates the stream shard count using the UpdateShardCount API.
+        :param target_shard_count: the shard count the stream should scale to
+        """
         response = KINESIS_CLIENT.update_shard_count(
             StreamName=self.stream_name,
             TargetShardCount=target_shard_count,
