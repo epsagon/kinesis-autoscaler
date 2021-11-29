@@ -36,7 +36,7 @@ def test_upscale_operation(mocker: MockerFixture) -> None:
         stream_name, current_shard_count, expected_target_shard_count
     )
     cw_client_mock.describe_alarms(
-        alarm_names=(scale_up_alarm_name, scale_down_alarm_name)
+        alarm_names=[scale_up_alarm_name, scale_down_alarm_name]
     )
     put_metric_alarm_mock = cw_client_mock.put_metric_alarm()
     set_alarm_state_mock = cw_client_mock.set_alarm_state()

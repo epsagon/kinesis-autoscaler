@@ -1,7 +1,7 @@
 """
 CloudWatch client mocker
 """
-from typing import Tuple
+from typing import List
 from pytest_mock import MockerFixture
 
 
@@ -15,7 +15,7 @@ class CloudWatchClientMocker:
         self.client = client
         self.mocker = mocker
 
-    def describe_alarms(self, alarm_names: Tuple[str, ...]) -> MockerFixture:
+    def describe_alarms(self, alarm_names: List[str]) -> MockerFixture:
         return self.mocker.patch.object(
             self.client,
             "describe_alarms",
@@ -36,7 +36,7 @@ class CloudWatchClientMocker:
     def set_alarm_state(self) -> MockerFixture:
         return self.mocker.patch.object(self.client, "set_alarm_state")
 
-    def get_metric_data(self, metric_data_results: Tuple[float, ...]) -> MockerFixture:
+    def get_metric_data(self, metric_data_results: List[float]) -> MockerFixture:
         return self.mocker.patch.object(
             self.client,
             "get_metric_data",
