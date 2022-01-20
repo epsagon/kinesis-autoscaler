@@ -1,6 +1,7 @@
 # Kinesis Autoscaler
 
-An easy to deploy autoscaling solution for Kinesis data streams.
+An easy to deploy autoscaling solution for Kinesis data streams.  
+Read more about the motivation, design and comparison to the native on-demand mode on the [Epsagon](https://epsagon.com/observability/autoscaling-kinesis-data-streams-in-epsagon/) and [Cisco](https://techblog.cisco.com/blog/autoscaling-kinesis-data-streams-in-epsagon/) blogs.
 
 ## Introduction
 
